@@ -1,0 +1,6 @@
+read the readme.
+added exit option to opening menu -> implemented the break statement.
+created Classes for the different vending machine items, with an abstract parent class
+implemented a final int for inventory max, as well as a derived attribute showing how many of a given item is left
+added VendingInventory class
+began constructor that reads from the file
