@@ -1,14 +1,22 @@
 package com.techelevator;
 
+import java.text.NumberFormat;
+
 public abstract class VendingMachineItem {
 
-    private String location;
-    private String name;
-    private int inventory;
-    private final int INVENTORY_MAX = 5;
-    private double price;
+    protected String location;
+    protected String name;
+    protected int inventory;
+    protected final int INVENTORY_MAX = 5;
+    protected double price;
 
     public abstract String message();
+
+    @Override
+    public String toString() {
+        NumberFormat f = NumberFormat.getCurrencyInstance();
+        return this.location + " | " + this.getAvailable() + " | " + this.name + ": " + f.format(this.price);
+    }
 
     public String getAvailable() {
         if(inventory <= 0) return "SOLD OUT";
@@ -16,14 +24,11 @@ public abstract class VendingMachineItem {
         return "" + inventory;
     }
 
-    public VendingMachineItem() {
+    public void dispenseItem() {
+        inventory--;
     }
 
-    public VendingMachineItem(String location, String name, int inventory, double price) {
-        this.location = location;
-        this.name = name;
-        this.inventory = inventory;
-        this.price = price;
+    public VendingMachineItem() {
     }
 
     public String getLocation() {
