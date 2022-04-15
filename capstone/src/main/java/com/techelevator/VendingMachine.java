@@ -27,6 +27,7 @@ public class VendingMachine {
 
     public void makePurchase() {
         Scanner userIn = new Scanner(System.in);
+        VendingMachineItem item;
         while(true) {
             System.out.println("Current balance: " + f.format(balance));
             String choice = (String) menu.getChoiceFromOptions(new String[]{"Feed Money", "Select Product", "Finish Transaction"});
@@ -43,7 +44,7 @@ public class VendingMachine {
                 System.out.print("Please choose an option >>> ");
                 choice = userIn.nextLine();
 
-                VendingMachineItem item = vendingInventory.get(getItemIndex(choice));
+                item = vendingInventory.get(getItemIndex(choice));
 
                 if(item == null) {
                     System.out.println("Selection is invalid.");
@@ -67,7 +68,8 @@ public class VendingMachine {
                 // dispense
                 balance -= item.getPrice();
                 balance = Double.parseDouble(d.format(balance));
-                vendingInventory.get(getItemIndex(choice)).dispenseItem();
+                item.dispenseItem();
+//                vendingInventory.get(getItemIndex(choice)).dispenseItem();
             }
             if(choice.equals("Finish Transaction")){
                 System.out.println("Your change is " + f.format(balance));

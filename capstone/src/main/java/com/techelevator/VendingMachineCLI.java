@@ -18,14 +18,14 @@ public class VendingMachineCLI {
 	}
 
 	public void run() {
+		VendingMachine vendor = new VendingMachine(INVENTORY_FILE_NAME, menu, a);
 		while(true) {
 			String choice = (String) menu.getChoiceFromOptions(MAIN_MENU_OPTIONS);
-			VendingMachine vendor = new VendingMachine(INVENTORY_FILE_NAME, menu, a);
 
-			if (choice.equals(MAIN_MENU_OPTION_DISPLAY_ITEMS)) {
+			if(choice.equals(MAIN_MENU_OPTION_DISPLAY_ITEMS)) {
 				// display vending machine items
 				vendor.printInventory();
-			} else if (choice.equals(MAIN_MENU_OPTION_PURCHASE)) {
+			} else if(choice.equals(MAIN_MENU_OPTION_PURCHASE)) {
 				// do purchase
 				vendor.makePurchase();
 			} else if(choice.equals(MAIN_MENU_OPTION_RESTOCK)) {
