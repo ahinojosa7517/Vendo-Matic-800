@@ -28,7 +28,7 @@ public class Audit {
 
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm:ss a");
             LocalDateTime now = LocalDateTime.now();
-            out.print(dtf.format(now) + " " + message + " " + f.format(balance));
+            out.println(dtf.format(now) + " " + message + " " + f.format(balance));
 
         } catch (FileNotFoundException e) {
             System.out.println("Error: " + e.getMessage());
