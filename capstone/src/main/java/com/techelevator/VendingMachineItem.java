@@ -25,6 +25,7 @@ public abstract class VendingMachineItem {
     }
 
     public void dispenseItem() {
+        if(inventory <= 0) return;
         inventory--;
     }
 

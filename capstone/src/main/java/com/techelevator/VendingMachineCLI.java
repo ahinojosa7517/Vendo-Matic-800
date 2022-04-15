@@ -27,7 +27,9 @@ public class VendingMachineCLI {
 				vendor.printInventory();
 			} else if(choice.equals(MAIN_MENU_OPTION_PURCHASE)) {
 				// do purchase
+//				System.out.println("--------------------------------\n\n" + vendor.makePurchase());
 				vendor.makePurchase();
+
 			} else if(choice.equals(MAIN_MENU_OPTION_RESTOCK)) {
 				vendor.restock();
 			} else {

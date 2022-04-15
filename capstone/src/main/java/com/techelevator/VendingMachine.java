@@ -12,6 +12,11 @@ import java.util.Scanner;
 
 public class VendingMachine {
 
+    private final double QUARTER = 0.25;
+    private final double DIME = 0.10;
+    private final double NICKEL = 0.05;
+    private final double PENNY = 0.01;
+
     private String inventoryFileName;
     private double balance = 0.0;
     private Menu menu;
@@ -19,52 +24,81 @@ public class VendingMachine {
     private List<VendingMachineItem> vendingInventory;
     private NumberFormat f = NumberFormat.getCurrencyInstance();
     private DecimalFormat d = new DecimalFormat("#0.00");
+    private List<Object> testParams = null;
 
+    public void setTestParams(List<Object> testParams) {
+        this.testParams = testParams;
+    }
 
     public void restock() {
         vendingInventory = stockInventory();
     }
 
-    public void makePurchase() {
+    public String makePurchase() {
+        int i = 1; String testResult = ""; String test = "";// test-specific variables
+        if(testParams != null) test = (String) testParams.get(0);
         Scanner userIn = new Scanner(System.in);
         VendingMachineItem item;
         while(true) {
-            System.out.println("Current balance: " + f.format(balance));
-            String choice = (String) menu.getChoiceFromOptions(new String[]{"Feed Money", "Select Product", "Finish Transaction"});
+            String choice;
+            if(testParams == null) {
+                System.out.println("Current balance: " + f.format(balance));
+                choice = (String) menu.getChoiceFromOptions(new String[]{"Feed Money", "Select Product", "Finish Transaction"});
+            } else {
+                choice = (String) testParams.get(i);
+                i++;
+            }
 
             if(choice.equals("Feed Money")){
-                Integer moneyChoice = (Integer) menu.getChoiceFromOptions(new Integer[]{1, 2, 5, 10});
-                a.log("FEED MONEY: " + f.format(moneyChoice), moneyChoice + balance);
+                Integer moneyChoice;
+                if(testParams == null) {
+                    moneyChoice = (Integer) menu.getChoiceFromOptions(new Integer[]{1, 2, 5, 10});
+                    a.log("FEED MONEY: " + f.format(moneyChoice), moneyChoice + balance);
+                } else {
+                    moneyChoice = (Integer) testParams.get(i);
+                    i++;
+                }
 
                 balance += moneyChoice;
+                if(test.equals("test_makePurchase_feed_money")) testResult += "" + balance;
             }
             if(choice.equals("Select Product")) {
-                printInventory();
+                if(testParams == null) {
+                    printInventory();
 
-                System.out.print("Please choose an option >>> ");
-                choice = userIn.nextLine();
+                    System.out.print("Please choose an option >>> ");
+                    choice = userIn.nextLine();
+                } else {
+                    choice = (String) testParams.get(i);
+                    i++;
+                }
 
                 item = vendingInventory.get(getItemIndex(choice));
 
                 if(item == null) {
-                    System.out.println("Selection is invalid.");
+                    if(testParams == null)
+                        System.out.println("Selection is invalid.");
                     continue;
                 }
                 if(item.getAvailable().equals("SOLD OUT")) {
-                    System.out.println("Selection is sold out.");
+                    if(testParams == null)
+                        System.out.println("Selection is sold out.");
                     continue;
                 }
                 if(item.getPrice() > balance) {
-                    System.out.println("Not enough money provided.");
+                    if(testParams == null)
+                        System.out.println("Not enough money provided.");
                     continue;
                 }
 
                 a.log(item.getName() + " " + item.getLocation() + " " + f.format(balance), balance - item.getPrice());
 
-                System.out.println();
-                System.out.println("Dispensing " + item.getName() + " for " + f.format(item.getPrice()));
-                System.out.println(item.message());
-                System.out.println();
+                if(testParams == null) {
+                    System.out.println();
+                    System.out.println("Dispensing " + item.getName() + " for " + f.format(item.getPrice()));
+                    System.out.println(item.message());
+                    System.out.println();
+                }
                 // dispense
                 balance -= item.getPrice();
                 balance = Double.parseDouble(d.format(balance));
@@ -72,34 +106,40 @@ public class VendingMachine {
 //                vendingInventory.get(getItemIndex(choice)).dispenseItem();
             }
             if(choice.equals("Finish Transaction")){
-                System.out.println("Your change is " + f.format(balance));
+                if(testParams == null)
+                    System.out.println("Your change is " + f.format(balance));
                 a.log("GIVE CHANGE " + f.format(balance), 0.0);
 
                 int coins;
 
-                coins = countCoins(balance, 0.25);
-                System.out.println(coins + " quarters.");
-                balance -= coins * 0.25;
+                coins = countCoins(balance, QUARTER);
+                if(testParams == null)
+                    System.out.println(coins + " quarters.");
+                balance -= coins * QUARTER;
                 balance = Double.parseDouble(d.format(balance));
 
-                coins = countCoins(balance, 0.10);
-                System.out.println(coins + " dimes.");
-                balance -= coins * 0.10;
+                coins = countCoins(balance, DIME);
+                if(testParams == null)
+                    System.out.println(coins + " dimes.");
+                balance -= coins * DIME;
                 balance = Double.parseDouble(d.format(balance));
 
-                coins = countCoins(balance, 0.05);
-                System.out.println(coins + " nickels.");
-                balance -= coins * 0.05;
+                coins = countCoins(balance, NICKEL);
+                if(testParams == null)
+                    System.out.println(coins + " nickels.");
+                balance -= coins * NICKEL;
                 balance = Double.parseDouble(d.format(balance));
 
-                coins = countCoins(balance, 0.01);
-                System.out.println(coins + " pennies.");
+                coins = countCoins(balance, PENNY);
+                if(testParams == null)
+                    System.out.println(coins + " pennies.");
 
                 balance = 0.0;
 //				System.out.println("ending balance " + balance);
                 break;
             }
         }
+        return testResult;
     }
 
     private int countCoins(double amount, double coin) {
@@ -183,6 +223,14 @@ public class VendingMachine {
         this.menu = menu;
         this.a = a;
         this.vendingInventory = stockInventory();
+    }
+
+    public VendingMachine(String inventoryFileName, Menu menu, Audit a, List<Object> testParams) {
+        this.inventoryFileName = inventoryFileName;
+        this.menu = menu;
+        this.a = a;
+        this.vendingInventory = stockInventory();
+        this.testParams = testParams;
     }
 
     //    public VendingMachine() {
