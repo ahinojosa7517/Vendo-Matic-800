@@ -24,7 +24,13 @@ public class VendingMachine {
     private List<VendingMachineItem> vendingInventory;
     private NumberFormat f = NumberFormat.getCurrencyInstance();
     private DecimalFormat d = new DecimalFormat("#0.00");
+
+    // test-specific variables
     private List<Object> testParams = null;
+
+    private int i;
+    private String testResult;
+    private String test;
 
     public void setTestParams(List<Object> testParams) {
         this.testParams = testParams;
@@ -35,10 +41,11 @@ public class VendingMachine {
     }
 
     public String makePurchase() {
-        int i = 1; String testResult = ""; String test = "";// test-specific variables
-        if(testParams != null) test = (String) testParams.get(0);
+        i = 1; testResult = ""; test = "";
+        if(testParams != null) test = (String) testParams.get(0); // if available, set test title
         Scanner userIn = new Scanner(System.in);
         VendingMachineItem item;
+
         while(true) {
             String choice;
             if(testParams == null) {
@@ -60,11 +67,12 @@ public class VendingMachine {
                 }
 
                 balance += moneyChoice;
+
                 if(test.equals("test_makePurchase_feed_money")) testResult += "" + balance;
             }
             if(choice.equals("Select Product")) {
                 if(testParams == null) {
-                    printInventory();
+                    System.out.print(printInventory());
 
                     System.out.print("Please choose an option >>> ");
                     choice = userIn.nextLine();
@@ -103,7 +111,8 @@ public class VendingMachine {
                 balance -= item.getPrice();
                 balance = Double.parseDouble(d.format(balance));
                 item.dispenseItem();
-//                vendingInventory.get(getItemIndex(choice)).dispenseItem();
+
+                if(test.equals("test_makePurchase_purchase_potato_crisps")) testResult += item.getName();
             }
             if(choice.equals("Finish Transaction")){
                 if(testParams == null)
@@ -117,22 +126,26 @@ public class VendingMachine {
                     System.out.println(coins + " quarters.");
                 balance -= coins * QUARTER;
                 balance = Double.parseDouble(d.format(balance));
+                if(test.equals("test_makePurchase_change_is_correct")) testResult += coins + " ";
 
                 coins = countCoins(balance, DIME);
                 if(testParams == null)
                     System.out.println(coins + " dimes.");
                 balance -= coins * DIME;
                 balance = Double.parseDouble(d.format(balance));
+                if(test.equals("test_makePurchase_change_is_correct")) testResult += coins + " ";
 
                 coins = countCoins(balance, NICKEL);
                 if(testParams == null)
                     System.out.println(coins + " nickels.");
                 balance -= coins * NICKEL;
                 balance = Double.parseDouble(d.format(balance));
+                if(test.equals("test_makePurchase_change_is_correct")) testResult += coins + " ";
 
                 coins = countCoins(balance, PENNY);
                 if(testParams == null)
                     System.out.println(coins + " pennies.");
+                if(test.equals("test_makePurchase_change_is_correct")) testResult += coins + " ";
 
                 balance = 0.0;
 //				System.out.println("ending balance " + balance);
@@ -142,7 +155,7 @@ public class VendingMachine {
         return testResult;
     }
 
-    private int countCoins(double amount, double coin) {
+    private int countCoins(double amount, double coin) { // returns the maximum amount of the given coin that will fit in amount
         int count = 0;
 
         while(amount >= coin) {
@@ -153,17 +166,7 @@ public class VendingMachine {
         return count;
     }
 
-//    private VendingMachineItem getItem(String location) {
-//        for(VendingMachineItem item : vendingInventory) {
-//            if(item.getLocation().equals(location)) {
-//                return item;
-//            }
-//        }
-//
-//        return null;
-//    }
-
-    private int getItemIndex(String location) {
+    private int getItemIndex(String location) { // returns index in vendingInventory of the item at the given location
         int i = 0;
         while(i < vendingInventory.size()) {
             if(vendingInventory.get(i).getLocation().equals(location)) {
@@ -175,14 +178,17 @@ public class VendingMachine {
         return -1;
     }
 
-    public void printInventory() {
+    public String printInventory() { // prints current inventory
+        String out = "";
+
         for(VendingMachineItem item : vendingInventory) {
-            System.out.println(item);
+            out += item + "\n";
         }
+
+        return out;
     }
 
-    private List<VendingMachineItem> stockInventory() {
-//		Menu menu = new Menu(System.in, System.out);
+    private List<VendingMachineItem> stockInventory() { // reads inventoryFileName File and returns a fully stocked list based on the file
         File vendingStock = new File(inventoryFileName);
         List<VendingMachineItem> vendingInventory = new ArrayList<>();
 
@@ -218,6 +224,7 @@ public class VendingMachine {
         return vendingInventory;
     }
 
+    // constructor
     public VendingMachine(String inventoryFileName, Menu menu, Audit a) {
         this.inventoryFileName = inventoryFileName;
         this.menu = menu;
@@ -225,16 +232,7 @@ public class VendingMachine {
         this.vendingInventory = stockInventory();
     }
 
-    public VendingMachine(String inventoryFileName, Menu menu, Audit a, List<Object> testParams) {
-        this.inventoryFileName = inventoryFileName;
-        this.menu = menu;
-        this.a = a;
-        this.vendingInventory = stockInventory();
-        this.testParams = testParams;
-    }
-
-    //    public VendingMachine() {
-//    }
+    // getters and setters
 
     public String getInventoryFileName() {
         return inventoryFileName;
