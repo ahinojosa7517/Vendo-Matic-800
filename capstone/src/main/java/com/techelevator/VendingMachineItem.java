@@ -4,13 +4,34 @@ import java.text.NumberFormat;
 
 public abstract class VendingMachineItem {
 
+    // constant variables
+    protected final int INVENTORY_MAX = 5;
+
+    // instance variables
     protected String location;
     protected String name;
     protected int inventory;
-    protected final int INVENTORY_MAX = 5;
     protected double price;
 
+    // abstract method - each time of item has a unique message
     public abstract String message();
+
+    public String getAvailable() {
+        if(inventory <= 0) {
+            return "SOLD OUT";
+        }
+
+        return "" + inventory;
+    }
+
+    // dispenses item if available, returning false if SOLD OUT
+    public boolean dispenseItem() {
+        if(inventory <= 0) {
+            return false;
+        }
+        inventory--;
+        return true;
+    }
 
     @Override
     public String toString() {
@@ -18,20 +39,11 @@ public abstract class VendingMachineItem {
         return this.location + " | " + this.getAvailable() + " | " + this.name + ": " + f.format(this.price);
     }
 
-    public String getAvailable() {
-        if(inventory <= 0) return "SOLD OUT";
-
-        return "" + inventory;
-    }
-
-    public void dispenseItem() {
-        if(inventory <= 0) return;
-        inventory--;
-    }
-
+    // constructor
     public VendingMachineItem() {
     }
 
+    // getters and setters
     public String getLocation() {
         return location;
     }

@@ -24,23 +24,22 @@ public class VendingMachineCLI {
 
 			if(choice.equals(MAIN_MENU_OPTION_DISPLAY_ITEMS)) {
 				// display vending machine items
-				vendor.printInventory();
+				System.out.println(vendor.getInventory());
 			} else if(choice.equals(MAIN_MENU_OPTION_PURCHASE)) {
 				// do purchase
-//				System.out.println("--------------------------------\n\n" + vendor.makePurchase());
 				vendor.makePurchase();
-
 			} else if(choice.equals(MAIN_MENU_OPTION_RESTOCK)) {
+				// restock vendor
 				vendor.restock();
 			} else {
 				// exit
 				break;
 			}
 		}
-		System.out.println("Bye!");
+		System.out.println("Exiting.\n\nBye!");
 	}
 
-		public static void main(String[] args) {
+	public static void main(String[] args) {
 		Menu menu = new Menu(System.in, System.out);
 		VendingMachineCLI cli = new VendingMachineCLI(menu);
 		cli.run();

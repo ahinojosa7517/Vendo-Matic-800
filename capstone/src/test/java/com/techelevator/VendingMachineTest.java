@@ -29,10 +29,10 @@ public class VendingMachineTest {
         testParams.add("Finish Transaction");
 
         // Act
-        vend.setTestParams(testParams);
+        vend.setTestParams(testParams); // pass in inputs, telling the object it's being run as a unit test
         vend.makePurchase();
         vend.restock();
-        String result = vend.printInventory();
+        String result = vend.getInventory();
 
         // Assert
         Assert.assertTrue(result.equals(
@@ -68,7 +68,7 @@ public class VendingMachineTest {
         // Act
         vend.setTestParams(testParams);
         vend.makePurchase();
-        String result = vend.printInventory();
+        String result = vend.getInventory();
 
         // Assert
         Assert.assertTrue(result.equals(

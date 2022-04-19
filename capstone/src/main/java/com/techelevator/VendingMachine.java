@@ -12,150 +12,221 @@ import java.util.Scanner;
 
 public class VendingMachine {
 
+    // constant class variables
     private final double QUARTER = 0.25;
     private final double DIME = 0.10;
     private final double NICKEL = 0.05;
     private final double PENNY = 0.01;
 
+    // instance variables
     private String inventoryFileName;
     private double balance = 0.0;
     private Menu menu;
     private Audit a;
     private List<VendingMachineItem> vendingInventory;
+
+    // formatting objects
     private NumberFormat f = NumberFormat.getCurrencyInstance();
     private DecimalFormat d = new DecimalFormat("#0.00");
 
     // test-specific variables
     private List<Object> testParams = null;
-
-    private int i;
+    private int testIterator;
     private String testResult;
-    private String test;
+    private String testTitle;
 
+    // test-specific method
     public void setTestParams(List<Object> testParams) {
         this.testParams = testParams;
     }
 
+    // restock all inventory
     public void restock() {
         vendingInventory = stockInventory();
     }
 
+    // purchase method - returns String for testing purposes
     public String makePurchase() {
-        i = 1; testResult = ""; test = "";
-        if(testParams != null) test = (String) testParams.get(0); // if available, set test title
+        testIterator = 1; testResult = ""; testTitle = "";
+        // if available, set test title
+        if(testParams != null) {
+            testTitle = (String) testParams.get(0);
+        }
         Scanner userIn = new Scanner(System.in);
         VendingMachineItem item;
 
+        // purchase menu loop
         while(true) {
             String choice;
+            // check if running a test - if not, take user input
             if(testParams == null) {
                 System.out.println("Current balance: " + f.format(balance));
                 choice = (String) menu.getChoiceFromOptions(new String[]{"Feed Money", "Select Product", "Finish Transaction"});
             } else {
-                choice = (String) testParams.get(i);
-                i++;
+                // else == testing - take input from testParams list
+                choice = (String) testParams.get(testIterator);
+                testIterator++;
             }
 
-            if(choice.equals("Feed Money")){
-                Integer moneyChoice;
-                if(testParams == null) {
-                    moneyChoice = (Integer) menu.getChoiceFromOptions(new Integer[]{1, 2, 5, 10});
-                    a.log("FEED MONEY: " + f.format(moneyChoice), moneyChoice + balance);
-                } else {
-                    moneyChoice = (Integer) testParams.get(i);
-                    i++;
-                }
-
-                balance += moneyChoice;
-
-                if(test.equals("test_makePurchase_feed_money")) testResult += "" + balance;
+            // input selected to feed money to the machine
+            if(choice.equals("Feed Money")) {
+                this.feedMoney();
             }
+            // input selected to purchase a product
             if(choice.equals("Select Product")) {
+                // check if running a test - if not, take user input
                 if(testParams == null) {
-                    System.out.print(printInventory());
+                    System.out.print(getInventory());
 
                     System.out.print("Please choose an option >>> ");
                     choice = userIn.nextLine();
                 } else {
-                    choice = (String) testParams.get(i);
-                    i++;
+                    // else == testing - take input from testParams list
+                    choice = (String) testParams.get(testIterator);
+                    testIterator++;
                 }
 
-                item = vendingInventory.get(getItemIndex(choice));
+                // getItemIndex() returns -1 if item can't be found - catches and assigns null
+                try {
+                    // store variable associated with input
+                    item = vendingInventory.get(getItemIndex(choice));
+                } catch(IndexOutOfBoundsException e) {
+                    item = null;
+                }
 
+                // selection can't be found, sends user back to purchase menu
                 if(item == null) {
                     if(testParams == null)
                         System.out.println("Selection is invalid.");
                     continue;
                 }
-                if(item.getAvailable().equals("SOLD OUT")) {
-                    if(testParams == null)
-                        System.out.println("Selection is sold out.");
-                    continue;
-                }
+                // selection is too expensive for the current balance, sends user back to purchase menu
                 if(item.getPrice() > balance) {
                     if(testParams == null)
                         System.out.println("Not enough money provided.");
                     continue;
                 }
 
-                a.log(item.getName() + " " + item.getLocation() + " " + f.format(balance), balance - item.getPrice());
+                // dispense item, printing error if SOLD OUT
+                if(item.dispenseItem()) {
+                    balance -= item.getPrice();
+                    balance = Double.parseDouble(d.format(balance));
+                    // logs successfully dispensed item
+                    a.log(item, f.format(balance), balance - item.getPrice());
+                } else {
+                    if(testParams == null)
+                        System.out.println("Selection is sold out.");
+                    continue;
+                }
 
+                // check if running a test - if not, output dispense message
                 if(testParams == null) {
                     System.out.println();
                     System.out.println("Dispensing " + item.getName() + " for " + f.format(item.getPrice()));
                     System.out.println(item.message());
                     System.out.println();
                 }
-                // dispense
-                balance -= item.getPrice();
-                balance = Double.parseDouble(d.format(balance));
-                item.dispenseItem();
 
-                if(test.equals("test_makePurchase_purchase_potato_crisps")) testResult += item.getName();
+                // adding to testResult if matching testTitle
+                if(testTitle.equals("test_makePurchase_purchase_potato_crisps")) {
+                    testResult += item.getName();
+                }
             }
+            // input selected to finish the transaction
             if(choice.equals("Finish Transaction")){
-                if(testParams == null)
-                    System.out.println("Your change is " + f.format(balance));
-                a.log("GIVE CHANGE " + f.format(balance), 0.0);
-
-                int coins;
-
-                coins = countCoins(balance, QUARTER);
-                if(testParams == null)
-                    System.out.println(coins + " quarters.");
-                balance -= coins * QUARTER;
-                balance = Double.parseDouble(d.format(balance));
-                if(test.equals("test_makePurchase_change_is_correct")) testResult += coins + " ";
-
-                coins = countCoins(balance, DIME);
-                if(testParams == null)
-                    System.out.println(coins + " dimes.");
-                balance -= coins * DIME;
-                balance = Double.parseDouble(d.format(balance));
-                if(test.equals("test_makePurchase_change_is_correct")) testResult += coins + " ";
-
-                coins = countCoins(balance, NICKEL);
-                if(testParams == null)
-                    System.out.println(coins + " nickels.");
-                balance -= coins * NICKEL;
-                balance = Double.parseDouble(d.format(balance));
-                if(test.equals("test_makePurchase_change_is_correct")) testResult += coins + " ";
-
-                coins = countCoins(balance, PENNY);
-                if(testParams == null)
-                    System.out.println(coins + " pennies.");
-                if(test.equals("test_makePurchase_change_is_correct")) testResult += coins + " ";
-
-                balance = 0.0;
-//				System.out.println("ending balance " + balance);
+                this.finishTransaction();
                 break;
             }
         }
         return testResult;
     }
 
-    private int countCoins(double amount, double coin) { // returns the maximum amount of the given coin that will fit in amount
+    // helper method to finish the transaction
+    private void finishTransaction() {
+        // check if running a test - if not, output change message
+        if(testParams == null) {
+            System.out.println("Your change is " + f.format(balance));
+        }
+        // logs change given
+        a.log("GIVE CHANGE " + f.format(balance), 0.0);
+
+        int coins;
+
+        coins = countCoins(balance, QUARTER);
+        // check if running a test - if not, output change message
+        if(testParams == null) {
+            System.out.println(coins + " quarters.");
+        }
+        balance -= coins * QUARTER;
+        // bug fix - balance would lose precision, rounding to nearest penny
+        balance = Double.parseDouble(d.format(balance));
+        // adding to testResult if matching testTitle
+        if(testTitle.equals("test_makePurchase_change_is_correct")) {
+            testResult += coins + " ";
+        }
+
+        coins = countCoins(balance, DIME);
+        // check if running a test - if not, output change message
+        if(testParams == null) {
+            System.out.println(coins + " dimes.");
+        }
+        balance -= coins * DIME;
+        // bug fix - balance would lose precision, rounding to nearest penny
+        balance = Double.parseDouble(d.format(balance));
+        // adding to testResult if matching testTitle
+        if(testTitle.equals("test_makePurchase_change_is_correct")) {
+            testResult += coins + " ";
+        }
+
+        coins = countCoins(balance, NICKEL);
+        // check if running a test - if not, output change message
+        if(testParams == null) {
+            System.out.println(coins + " nickels.");
+        }
+        balance -= coins * NICKEL;
+        // bug fix - balance would lose precision, rounding to nearest penny
+        balance = Double.parseDouble(d.format(balance));
+        // adding to testResult if matching testTitle
+        if(testTitle.equals("test_makePurchase_change_is_correct")) {
+            testResult += coins + " ";
+        }
+
+        coins = countCoins(balance, PENNY);
+        // check if running a test - if not, output change message
+        if(testParams == null) {
+            System.out.println(coins + " pennies.");
+        }
+        // adding to testResult if matching testTitle
+        if(testTitle.equals("test_makePurchase_change_is_correct")) {
+            testResult += coins + " ";
+        }
+
+        balance = 0.0;
+    }
+
+    // helper method for feed money function
+    private void feedMoney() {
+        int moneyChoice;
+        // check if running a test - if not, take user input
+        if(testParams == null) {
+            moneyChoice = (Integer) menu.getChoiceFromOptions(new Integer[]{1, 2, 5, 10});
+            a.log("FEED MONEY: " + f.format(moneyChoice), moneyChoice + balance);
+        } else {
+            // else == testing - take input from testParams list
+            moneyChoice = (Integer) testParams.get(testIterator);
+            testIterator++;
+        }
+
+        balance += moneyChoice;
+
+        // adding to testResult if matching testTitle
+        if(testTitle.equals("test_makePurchase_feed_money")) {
+            testResult += "" + balance;
+        }
+    }
+
+    // returns the maximum amount of the given coin that will fit in amount
+    private int countCoins(double amount, double coin) {
         int count = 0;
 
         while(amount >= coin) {
@@ -166,19 +237,18 @@ public class VendingMachine {
         return count;
     }
 
-    private int getItemIndex(String location) { // returns index in vendingInventory of the item at the given location
-        int i = 0;
-        while(i < vendingInventory.size()) {
+    // returns index in vendingInventory of the item at the given location
+    private int getItemIndex(String location) {
+        for(int i = 0; i < vendingInventory.size(); i++) {
             if(vendingInventory.get(i).getLocation().equals(location)) {
                 return i;
             }
-
-            i++;
         }
         return -1;
     }
 
-    public String printInventory() { // prints current inventory
+    // returns current inventory
+    public String getInventory() {
         String out = "";
 
         for(VendingMachineItem item : vendingInventory) {
@@ -188,8 +258,9 @@ public class VendingMachine {
         return out;
     }
 
-    private List<VendingMachineItem> stockInventory() { // reads inventoryFileName File and returns a fully stocked list based on the file
-        File vendingStock = new File(inventoryFileName);
+    // reads inventoryFileName File and returns a fully stocked list based on the file
+    private List<VendingMachineItem> stockInventory() {
+        File vendingStock = new File(System.getProperty("user.dir"), inventoryFileName);
         List<VendingMachineItem> vendingInventory = new ArrayList<>();
 
         try (Scanner fileIn = new Scanner(vendingStock)) {
@@ -207,12 +278,7 @@ public class VendingMachine {
                 } else if(splitLine[3].equals("Gum")) {
                     item = new Gum(splitLine[0], splitLine[1], Double.parseDouble(splitLine[2]));
                 } else {
-                    item = new VendingMachineItem() {
-                        @Override
-                        public String message() {
-                            return null;
-                        }
-                    };
+                    item = null;
                 }
 
                 vendingInventory.add(item);
@@ -233,7 +299,6 @@ public class VendingMachine {
     }
 
     // getters and setters
-
     public String getInventoryFileName() {
         return inventoryFileName;
     }

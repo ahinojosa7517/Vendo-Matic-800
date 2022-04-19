@@ -16,33 +16,29 @@ public class AuditTest {
     File logFile;
     Audit a;
 
-    @Before
-    public void initialize_audit_object() {
+    @Test
+    public void log_writes_to_Log_txt() {
+        // Arrange
         a = new Audit();
-        logFile = new File(LOG_FILEPATH);
+        logFile = new File(System.getProperty("user.dir"), LOG_FILEPATH);
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm:ss a");
+        LocalDateTime now = LocalDateTime.now();
+
         try (Scanner file = new Scanner(logFile)) {
         } catch (FileNotFoundException e) {
             Assert.fail();
         }
-    }
-
-    @Test
-    public void log_writes_to_Log_txt() {
-        // Arrange
-        // @Before
 
         // Act
+        a.log("log_writes_to_Log_txt");
+        String lastLineCorrect = dtf.format(now) + " log_writes_to_Log_txt $0.00";
+
         String lastLine = "";
         try (Scanner fileIn = new Scanner(logFile)) {
             while(fileIn.hasNextLine()) { lastLine = fileIn.nextLine(); }
         } catch (FileNotFoundException e) {
             Assert.fail();
         }
-        String lastLineCorrect;
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm:ss a");
-        LocalDateTime now = LocalDateTime.now();
-        a.log("log_writes_to_Log_txt");
-        lastLineCorrect = dtf.format(now) + " log_writes_to_Log_txt $0.00";
 
         // Assert
         Assert.assertTrue(lastLine.equals(lastLineCorrect));

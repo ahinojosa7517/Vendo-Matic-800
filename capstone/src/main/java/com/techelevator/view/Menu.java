@@ -10,11 +10,13 @@ public class Menu {
 	private PrintWriter out;
 	private Scanner in;
 
+	// constructor
 	public Menu(InputStream input, OutputStream output) {
 		this.out = new PrintWriter(output);
 		this.in = new Scanner(input);
 	}
 
+	// takes array of objects, returns one object from the array
 	public Object getChoiceFromOptions(Object[] options) {
 		Object choice = null;
 		while (choice == null) {
@@ -24,6 +26,7 @@ public class Menu {
 		return choice;
 	}
 
+	// helper method takes array of objects
 	private Object getChoiceFromUserInput(Object[] options) {
 		Object choice = null;
 		String userInput = in.nextLine();
